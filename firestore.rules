@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /links/{linkId} {
+      // Anyone can read a link (needed for redirection if we were doing it clientside)
+      // Wait, we do redirection via Cloud Function, but the frontend might want to read a specific link.
+      // But for dashboard, user can only read their own links.
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Creating is handled by the Cloud Function which bypasses these rules, 
+      // but if we ever allow client creation, they must set userId to their own uid.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}

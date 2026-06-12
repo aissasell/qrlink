@@ -22,6 +22,20 @@ exports.shorten = onRequest({ cors: true }, (req, res) => {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
+    // Verify Auth token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const token = authHeader.split("Bearer ")[1];
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(token);
+    } catch (err) {
+      return res.status(401).json({ error: "Unauthorized or expired token" });
+    }
+    const userId = decodedToken.uid;
+
     const { url } = req.body;
     if (!url) {
       return res.status(400).json({ error: "URL is required" });
@@ -47,7 +61,8 @@ exports.shorten = onRequest({ cors: true }, (req, res) => {
     await docRef.set({
       originalUrl: url,
       createdAt: FieldValue.serverTimestamp(),
-      clicks: 0
+      clicks: 0,
+      userId: userId
     });
 
     return res.status(200).json({ id: shortId, originalUrl: url });
