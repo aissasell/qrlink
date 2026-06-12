@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { LogOut, LayoutDashboard, Link2 } from "lucide-react";
+import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
+import { LogOut, LayoutDashboard, Link2, User as UserIcon } from "lucide-react";
 
 export default function Topbar() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -34,21 +35,48 @@ export default function Topbar() {
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <Link href="/dashboard" className="px-4 py-2 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm transition-colors flex items-center gap-2 text-slate-200">
-              <LayoutDashboard className="w-4 h-4" /> <span className="hidden sm:inline">Dashboard</span>
-            </Link>
-            <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-slate-800 pl-6">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border border-slate-700" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center text-indigo-300 font-bold text-sm">
-                  {user.email?.[0].toUpperCase() || 'U'}
-                </div>
+            <div className="relative">
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-3 focus:outline-none"
+              >
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border border-slate-700 hover:opacity-80 transition-opacity" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center text-indigo-300 hover:bg-indigo-900/80 transition-colors">
+                    <UserIcon className="w-4 h-4" />
+                  </div>
+                )}
+              </button>
+              
+              {isDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                  <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-200">
+                    <div className="px-4 py-3 border-b border-slate-800">
+                      <p className="text-sm font-medium text-white truncate">{user.displayName || 'User'}</p>
+                      <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                    </div>
+                    <Link 
+                      href="/dashboard" 
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-2 border-b border-slate-800"
+                    >
+                      <LayoutDashboard className="w-4 h-4" /> Dashboard
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        handleSignOut();
+                      }} 
+                      className="w-full text-left px-4 py-3 text-sm text-rose-400 hover:bg-slate-800 transition-colors flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" /> Sign Out
+                    </button>
+                  </div>
+                </>
               )}
             </div>
-            <button onClick={handleSignOut} className="p-2 sm:px-4 sm:py-2 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm transition-colors flex items-center gap-2 text-rose-400">
-              <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Sign Out</span>
-            </button>
           </>
         ) : (
           <>
