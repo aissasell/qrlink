@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock, User as UserIcon } from "lucide-react";
 
 export default function Register() {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,11 +19,33 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    // Basic username validation
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      setError("Username must be 3-20 characters long and can only contain letters, numbers, and underscores.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Check if username exists
+      const usernameDocRef = doc(db, "usernames", username.toLowerCase());
+      const usernameDoc = await getDoc(usernameDocRef);
+      if (usernameDoc.exists()) {
+        throw new Error("Username is already taken.");
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: name });
+      
+      // Save username to email mapping in Firestore
+      await setDoc(usernameDocRef, {
+        email: email,
+        uid: userCredential.user.uid
+      });
+
+      await updateProfile(userCredential.user, { displayName: username });
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
@@ -69,9 +92,9 @@ export default function Register() {
             <input
               type="text"
               required
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.trim())}
               className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 transition-all placeholder:text-slate-600"
             />
           </div>
@@ -104,7 +127,7 @@ export default function Register() {
           
           <button
             type="submit"
-            disabled={loading || !email || !password || !name}
+            disabled={loading || !email || !password || !username}
             className="mt-4 w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-fuchsia-600 hover:bg-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-fuchsia-500/20"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Register"}

@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock } from "lucide-react";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      let loginEmail = identifier;
+      
+      // If it doesn't look like an email, assume it's a username
+      if (!identifier.includes("@")) {
+        const usernameDoc = await getDoc(doc(db, "usernames", identifier.toLowerCase()));
+        if (!usernameDoc.exists()) {
+          throw new Error("Username not found.");
+        }
+        loginEmail = usernameDoc.data().email;
+      }
+
+      await signInWithEmailAndPassword(auth, loginEmail, password);
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
@@ -65,11 +77,11 @@ export default function Login() {
               <Mail className="h-5 w-5 text-slate-500" />
             </div>
             <input
-              type="email"
+              type="text"
               required
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email or Username"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value.trim())}
               className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
             />
           </div>
@@ -89,7 +101,7 @@ export default function Login() {
           
           <button
             type="submit"
-            disabled={loading || !email || !password}
+            disabled={loading || !identifier || !password}
             className="mt-4 w-full flex justify-center items-center py-3 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}

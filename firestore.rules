@@ -11,5 +11,15 @@ service cloud.firestore {
       // but if we ever allow client creation, they must set userId to their own uid.
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
+    
+    match /usernames/{username} {
+      // Allow unauthenticated reads for login lookup, but prevent listing
+      allow get: if true;
+      allow list: if false;
+      
+      // Allow creation only if logged in and setting own uid
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
   }
 }
