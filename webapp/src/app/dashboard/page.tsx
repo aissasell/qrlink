@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
 import Link from "next/link";
-import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy } from "lucide-react";
+import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2 } from "lucide-react";
 import QRCode from "react-qr-code";
 
 interface LinkDoc {
@@ -97,6 +97,19 @@ export default function Dashboard() {
       navigator.clipboard.writeText(shortUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleDelete = async (linkId: string) => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to delete this link?")) return;
+    
+    try {
+      await deleteDoc(doc(db, "links", linkId));
+      setLinks((prev) => prev.filter((link) => link.id !== linkId));
+    } catch (error) {
+      console.error("Error deleting link:", error);
+      alert("Failed to delete the link.");
     }
   };
 
@@ -219,9 +232,18 @@ export default function Dashboard() {
                   </a>
                   <p className="text-slate-400 text-sm truncate mt-1">{link.originalUrl}</p>
                 </div>
-                <div className="flex items-center gap-2 bg-slate-950 py-2 px-4 rounded-xl border border-slate-800 shrink-0">
-                  <MousePointerClick className="w-4 h-4 text-slate-400" />
-                  <span className="font-medium">{link.clicks} clicks</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 bg-slate-950 py-2 px-4 rounded-xl border border-slate-800">
+                    <MousePointerClick className="w-4 h-4 text-slate-400" />
+                    <span className="font-medium">{link.clicks} clicks</span>
+                  </div>
+                  <button 
+                    onClick={() => handleDelete(link.id)}
+                    className="p-2 hover:cursor-pointer text-red-600 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors"
+                    title="Delete link"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             ))}
