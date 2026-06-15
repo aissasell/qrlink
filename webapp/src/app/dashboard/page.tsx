@@ -5,8 +5,9 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
 import Link from "next/link";
-import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2 } from "lucide-react";
+import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
+import QRCodeLib from "qrcode";
 
 interface LinkDoc {
   id: string;
@@ -110,6 +111,30 @@ export default function Dashboard() {
     } catch (error) {
       console.error("Error deleting link:", error);
       alert("Failed to delete the link.");
+    }
+  };
+
+  const handleDownloadQR = async (linkId: string) => {
+    try {
+      const host = window.location.origin;
+      const urlToEncode = `${host}/${linkId}`;
+      const dataUrl = await QRCodeLib.toDataURL(urlToEncode, {
+        width: 1024,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `qr-${linkId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Error generating QR code:", err);
+      alert("Failed to generate QR code.");
     }
   };
 
@@ -237,6 +262,13 @@ export default function Dashboard() {
                     <MousePointerClick className="w-4 h-4 text-slate-400" />
                     <span className="font-medium">{link.clicks} clicks</span>
                   </div>
+                  <button 
+                    onClick={() => handleDownloadQR(link.id)}
+                    className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 hover:cursor-pointer rounded-xl transition-colors shrink-0"
+                    title="Download QR Code"
+                  >
+                    <QrCode className="w-5 h-5" />
+                  </button>
                   <button 
                     onClick={() => handleDelete(link.id)}
                     className="p-2 hover:cursor-pointer text-red-600 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-colors"
