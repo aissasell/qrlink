@@ -22,7 +22,8 @@ export default function Topbar() {
   };
 
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl z-50 fixed top-0">
+    <header className="w-full mx-auto border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl z-50 fixed top-0">
+      <div className="w-3/4 mx-auto px-6 py-4 flex items-center justify-between ">
       <Link href="/" className="flex items-center gap-2 group">
         <div className="p-2 bg-indigo-500/10 rounded-xl group-hover:bg-indigo-500/20 transition-colors">
           <Link2 className="w-5 h-5 text-indigo-400" />
@@ -88,6 +89,7 @@ export default function Topbar() {
             </Link>
           </>
         )}
+      </div>
       </div>
     </header>
   );
