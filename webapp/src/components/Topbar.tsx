@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
-import { LogOut, LayoutDashboard, Link2, User as UserIcon } from "lucide-react";
+import { LogOut, LayoutDashboard, Link2, User as UserIcon, Settings } from "lucide-react";
 
 export default function Topbar() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -45,7 +45,7 @@ export default function Topbar() {
                     <img src={user.photoURL} alt="Avatar" className="w-8 h-8 rounded-full border border-slate-700 hover:opacity-80 transition-opacity" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-indigo-900/50 border border-indigo-500/30 flex items-center justify-center text-indigo-300 hover:bg-indigo-900/80 transition-colors">
-                      <UserIcon className="w-4 h-4" />
+                      <UserIcon className="w-6 h-6" />
                     </div>
                   )}
                 </button>
@@ -58,6 +58,13 @@ export default function Topbar() {
                         <p className="text-sm font-medium text-white truncate">{user.displayName || 'User'}</p>
                         <p className="text-xs text-slate-400 truncate">{user.email}</p>
                       </div>
+                      <Link 
+                        href="/profile" 
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-2 border-b border-slate-800"
+                      >
+                        <Settings className="w-4 h-4" /> Profile Settings
+                      </Link>
                       <Link 
                         href="/dashboard" 
                         onClick={() => setIsDropdownOpen(false)}
