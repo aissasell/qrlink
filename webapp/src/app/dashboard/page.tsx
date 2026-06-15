@@ -5,7 +5,8 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import Link from "next/link";
-import { Link2, ArrowLeft, Loader2, MousePointerClick } from "lucide-react";
+import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy } from "lucide-react";
+import QRCode from "react-qr-code";
 
 interface LinkDoc {
   id: string;
@@ -18,6 +19,11 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [links, setLinks] = useState<LinkDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [url, setUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -51,6 +57,49 @@ export default function Dashboard() {
     }
   };
 
+  const handleShorten = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url || !user) return;
+
+    setIsCreating(true);
+    setShortUrl("");
+    
+    try {
+      const token = await user.getIdToken();
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://us-central1-qrlink-b845b.cloudfunctions.net";
+      const response = await fetch(`${baseUrl}/shorten`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ url })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to shorten");
+      
+      const host = window.location.origin;
+      setShortUrl(`${host}/${data.id}`);
+      setUrl("");
+      
+      fetchLinks(user.uid);
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while shortening the link.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (shortUrl) {
+      navigator.clipboard.writeText(shortUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -76,7 +125,7 @@ export default function Dashboard() {
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
       
       <div className="max-w-4xl mx-auto relative z-10">
-        <div className="flex items-center gap-4 mb-12">
+        <div className="flex items-center gap-4 mb-8">
           <Link href="/" className="p-3 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -84,6 +133,71 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold">Your Dashboard</h1>
             <p className="text-slate-400">Manage your shortened links</p>
           </div>
+        </div>
+
+        {/* Form section */}
+        <div className="bg-slate-900/60 backdrop-blur-3xl border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative mb-12">
+          <form onSubmit={handleShorten} className="relative flex flex-col gap-4">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Link2 className="h-5 w-5 text-slate-500" />
+              </div>
+              <input
+                type="url"
+                required
+                placeholder="Paste your long URL here to shorten..."
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isCreating || !url}
+              className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-2xl text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all overflow-hidden"
+            >
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative flex items-center gap-2">
+                {isCreating ? "Generating..." : "Generate Short Link"}
+                {!isCreating && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+              </span>
+            </button>
+          </form>
+
+          {shortUrl && (
+            <div className="mt-8 pt-8 border-t border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider text-center">
+                Your Link is Ready
+              </h2>
+              
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="p-4 bg-white rounded-2xl shadow-xl shrink-0">
+                  <QRCode
+                    value={shortUrl}
+                    size={120}
+                    style={{ height: "auto", maxWidth: "100%", width: "120px" }}
+                    viewBox={`0 0 256 256`}
+                  />
+                </div>
+
+                <div className="w-full relative group">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shortUrl}
+                    className="w-full bg-slate-950/50 border border-slate-700 text-indigo-300 rounded-xl pl-4 pr-12 py-3 focus:outline-none font-medium truncate"
+                  />
+                  <button
+                    onClick={copyToClipboard}
+                    className="absolute inset-y-0 right-1 my-1 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg flex items-center justify-center transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {links.length === 0 ? (
