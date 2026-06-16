@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
+import { useRouter } from "next/navigation";
 
 interface LinkDoc {
   id: string;
@@ -17,6 +18,7 @@ interface LinkDoc {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [links, setLinks] = useState<LinkDoc[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,11 +34,11 @@ export default function Dashboard() {
       if (currentUser) {
         fetchLinks(currentUser.uid);
       } else {
-        setLoading(false);
+        router.push("/login");
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const fetchLinks = async (uid: string) => {
     try {
@@ -147,15 +149,7 @@ export default function Dashboard() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-100 p-4">
-        <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-        <p className="text-slate-400 mb-8">Please sign in from the home page to view your dashboard.</p>
-        <Link href="/" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-colors">
-          Go Home
-        </Link>
-      </div>
-    );
+    return null;
   }
 
   return (
