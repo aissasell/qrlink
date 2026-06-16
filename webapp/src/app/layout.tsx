@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QRLink",
+  title: "QRLink | Make your links shorter and share them easily",
   description: "QRLink is a free tool that allows you to create and share QR codes for any URL.",
 };
 
