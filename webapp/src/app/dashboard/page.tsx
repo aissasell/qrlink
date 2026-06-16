@@ -164,9 +164,6 @@ export default function Dashboard() {
       
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/" className="p-3 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
           <div>
             <h1 className="text-3xl font-bold">Your Dashboard</h1>
             <p className="text-slate-400">Manage your shortened links</p>
