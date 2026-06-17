@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import logo from '@/app/logo.png'
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User as FirebaseUser } from "firebase/auth";
 import { LogOut, LayoutDashboard, Link2, User as UserIcon, Settings } from "lucide-react";
@@ -25,9 +27,7 @@ export default function Topbar() {
     <header className="w-full mx-auto border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl z-50 fixed top-0">
       <div className="w-3/4 mx-auto px-6 py-4 flex items-center justify-between ">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="p-2 bg-indigo-500/10 rounded-xl group-hover:bg-indigo-500/20 transition-colors">
-            <Link2 className="w-5 h-5 text-indigo-400" />
-          </div>
+          <Image src={logo} alt="Logo" className="w-10 h-10 rounded-xl" />
           <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             QRLink
           </span>

@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
-import Link from "next/link";
-import { Link2, ArrowLeft, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode } from "lucide-react";
+import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
 import { useRouter } from "next/navigation";
@@ -39,6 +38,8 @@ export default function Dashboard() {
     });
     return () => unsubscribe();
   }, [router]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const fetchLinks = async (uid: string) => {
     try {
@@ -177,6 +178,7 @@ export default function Dashboard() {
                 placeholder="Paste your long URL here to shorten..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                ref={inputRef}
                 className="w-full bg-slate-950/50 border border-slate-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
               />
             </div>
@@ -234,9 +236,12 @@ export default function Dashboard() {
             <Link2 className="w-12 h-12 text-slate-500 mx-auto mb-4" />
             <h2 className="text-xl font-medium mb-2">No links found</h2>
             <p className="text-slate-400 mb-6">You haven't shortened any links yet.</p>
-            <Link href="/" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-colors">
+            <button 
+              onClick={() => inputRef.current?.focus()}
+              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 hover:cursor-pointer rounded-xl transition-colors"
+            >
               Create a Link
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="grid gap-4">
