@@ -216,7 +216,7 @@ export default function LinkAnalyticsPage({ params }: { params: Promise<{ linkId
               {browserData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={browserData} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    <Pie data={browserData} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}>
                       {browserData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
                       ))}
