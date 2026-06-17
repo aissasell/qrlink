@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
-import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp } from "lucide-react";
+import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,15 @@ export default function Dashboard() {
   const [shortUrl, setShortUrl] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Search & Pagination state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -153,6 +162,14 @@ export default function Dashboard() {
   if (!user) {
     return null;
   }
+
+  const filteredLinks = links.filter((link) => {
+    const term = searchTerm.toLowerCase();
+    return link.originalUrl.toLowerCase().includes(term) || link.id.toLowerCase().includes(term);
+  });
+
+  const totalPages = Math.ceil(filteredLinks.length / itemsPerPage);
+  const paginatedLinks = filteredLinks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 selection:bg-indigo-500/30 font-sans relative">
@@ -293,6 +310,21 @@ export default function Dashboard() {
           </div>
         )}
 
+        {links.length > 0 && (
+          <div className="mb-6 relative group animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search links by URL or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-900/60 backdrop-blur-xl border border-slate-800 text-white rounded-2xl pl-12 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600 shadow-xl"
+            />
+          </div>
+        )}
+
         {links.length === 0 ? (
           <div className="text-center py-20 bg-slate-900/50 border border-slate-800 rounded-3xl">
             <Link2 className="w-12 h-12 text-slate-500 mx-auto mb-4" />
@@ -305,9 +337,15 @@ export default function Dashboard() {
               Create a Link
             </button>
           </div>
+        ) : filteredLinks.length === 0 ? (
+          <div className="text-center py-20 bg-slate-900/50 border border-slate-800 rounded-3xl animate-in fade-in">
+            <Search className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+            <h2 className="text-xl font-medium mb-2">No results</h2>
+            <p className="text-slate-400">No links matched your search "{searchTerm}".</p>
+          </div>
         ) : (
-          <div className="grid gap-4">
-            {links.map((link) => (
+          <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+            {paginatedLinks.map((link) => (
               <div key={link.id} className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors">
                 <div className="overflow-hidden">
                   <a href={`/${link.id}`} target="_blank" rel="noreferrer" className="text-indigo-400 font-semibold text-lg hover:underline block truncate">
@@ -344,6 +382,30 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 bg-slate-900/30 p-4 rounded-2xl border border-slate-800">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-slate-800 hover:cursor-pointer rounded-xl transition-colors text-sm font-medium"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <span className="text-slate-400 text-sm">
+                  Page <span className="text-white font-medium">{currentPage}</span> of <span className="text-white font-medium">{totalPages}</span>
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-slate-800 hover:cursor-pointer rounded-xl transition-colors text-sm font-medium"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
