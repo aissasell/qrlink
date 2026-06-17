@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const cors = require("cors")({ origin: true });
 const cheerio = require("cheerio");
+const UAParser = require("ua-parser-js");
 const { GoogleGenAI } = require("@google/genai");
 
 admin.initializeApp();
@@ -101,6 +102,25 @@ exports.redirect = onRequest({ cors: true }, (req, res) => {
       return res.status(403).json({ error: "This link has been disabled due to a policy violation." });
     }
 
+    // Extract individual click data
+    const ua = req.headers['user-agent'] || '';
+    const parser = new UAParser(ua);
+    const result = parser.getResult();
+    
+    // Default to desktop if device type is undefined but OS is desktop-like
+    const deviceType = result.device.type || (['iOS', 'Android'].includes(result.os.name) ? 'mobile' : 'desktop');
+    const browserName = result.browser.name || 'Unknown';
+    const countryCode = req.headers['x-appengine-country'] || req.headers['x-country-code'] || 'Unknown';
+
+    // Log the click asynchronously
+    docRef.collection('clicks').add({
+      timestamp: FieldValue.serverTimestamp(),
+      userAgent: ua,
+      device: deviceType,
+      browser: browserName,
+      country: countryCode
+    }).catch(console.error);
+
     // Increment click counter asynchronously
     docRef.update({
       clicks: FieldValue.increment(1)
@@ -111,6 +131,7 @@ exports.redirect = onRequest({ cors: true }, (req, res) => {
 });
 
 exports.moderateLinkOnCreate = onDocumentCreated("links/{linkId}", async (event) => {
+  return; // Disabled for now as per user request
   const snapshot = event.data;
   if (!snapshot) return;
 

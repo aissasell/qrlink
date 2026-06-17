@@ -10,6 +10,10 @@ service cloud.firestore {
       // Creating is handled by the Cloud Function which bypasses these rules, 
       // but if we ever allow client creation, they must set userId to their own uid.
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+
+      match /clicks/{clickId} {
+        allow read: if request.auth != null && get(/databases/$(database)/documents/links/$(linkId)).data.userId == request.auth.uid;
+      }
     }
     
     match /usernames/{username} {
