@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [shortUrl, setShortUrl] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
 
   // Search & Pagination state
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,6 +113,13 @@ export default function Dashboard() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleCopyLink = (linkId: string) => {
+    const host = window.location.origin;
+    navigator.clipboard.writeText(`${host}/${linkId}`);
+    setCopiedLinkId(linkId);
+    setTimeout(() => setCopiedLinkId(null), 2000);
   };
 
   const handleDelete = async (linkId: string) => {
@@ -371,6 +379,13 @@ export default function Dashboard() {
                     title="Download QR Code"
                   >
                     <QrCode className="w-5 h-5" />
+                  </button>
+                  <button 
+                    onClick={() => handleCopyLink(link.id)}
+                    className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-400/10 hover:cursor-pointer rounded-xl transition-colors shrink-0"
+                    title="Copy Link"
+                  >
+                    {copiedLinkId === link.id ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
                   </button>
                   <button 
                     onClick={() => handleDelete(link.id)}
