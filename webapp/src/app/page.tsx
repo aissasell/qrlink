@@ -6,6 +6,8 @@ import { Link2, QrCode, Copy, Check, ArrowRight, Zap, Shield, BarChart3 } from "
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import Link from "next/link";
+import Image from "next/image";
+import logo from "@/app/logo.png";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -80,7 +82,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-16 max-w-3xl">
           <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl mb-6 border border-indigo-500/20 backdrop-blur-xl">
-            <QrCode className="w-8 h-8 text-indigo-400" />
+            <Image src={logo} alt="Logo" className="w-12 h-12 rounded" />
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent mb-6">
             The Ultimate Link <br className="hidden md:block"/> Management Tool
@@ -195,10 +197,6 @@ export default function Home() {
         </div>
 
       </main>
-      
-      <footer className="w-full text-center py-8 text-slate-500 text-sm border-t border-slate-800/50 mt-auto">
-        &copy; {new Date().getFullYear()} QRLink. Powered by Firebase & Next.js.
-      </footer>
     </div>
   );
 }

@@ -4,7 +4,9 @@ import "./globals.css";
 import Topbar from "@/components/Topbar";
 import CookieBanner from "@/components/CookieBanner";
 import Link from "next/link";
-import { Link2 } from "lucide-react";
+import logo from '@/app/logo.png'
+import Image from "next/image";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -46,9 +48,7 @@ export default function RootLayout({
                 {/* Brand */}
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Link2 className="w-5 h-5 text-white" />
-                    </div>
+                    <Image src={logo} alt="Logo" className="w-10 h-10 rounded" />
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                       QRLink
                     </span>
