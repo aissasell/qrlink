@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy, doc, deleteDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, deleteDoc, onSnapshot } from "firebase/firestore";
 import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
@@ -39,38 +39,39 @@ export default function Dashboard() {
   }, [searchTerm]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    let unsubscribeSnapshot: () => void;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        fetchLinks(currentUser.uid);
+        const q = query(
+          collection(db, "links"),
+          where("userId", "==", currentUser.uid),
+          orderBy("createdAt", "desc")
+        );
+        unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+          const fetchedLinks = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as LinkDoc[];
+          setLinks(fetchedLinks);
+          setLoading(false);
+        }, (err) => {
+          console.error("Error fetching links:", err);
+          setLoading(false);
+        });
       } else {
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
         router.push("/login");
       }
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
   }, [router]);
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const fetchLinks = async (uid: string) => {
-    try {
-      const q = query(
-        collection(db, "links"),
-        where("userId", "==", uid),
-        orderBy("createdAt", "desc")
-      );
-      const snapshot = await getDocs(q);
-      const fetchedLinks = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as LinkDoc[];
-      setLinks(fetchedLinks);
-    } catch (err) {
-      console.error("Error fetching links:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +98,6 @@ export default function Dashboard() {
       const host = window.location.origin;
       setShortUrl(`${host}/${data.id}`);
       setUrl("");
-      
-      fetchLinks(user.uid);
     } catch (error) {
       console.error(error);
       alert("An error occurred while shortening the link.");
