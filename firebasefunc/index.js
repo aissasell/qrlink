@@ -131,6 +131,12 @@ exports.redirect = onRequest({ cors: true }, (req, res) => {
 });
 
 exports.moderateLinkOnCreate = onDocumentCreated("links/{linkId}", async (event) => {
+  // Skip moderation in emulator
+  if (process.env.FUNCTIONS_EMULATOR === 'true') {
+    console.log("Skipping moderation in emulator.");
+    return; // Exit early
+  }
+  
   const snapshot = event.data;
   if (!snapshot) return;
 
