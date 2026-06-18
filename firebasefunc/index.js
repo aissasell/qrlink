@@ -177,7 +177,7 @@ exports.moderateLinkOnCreate = onDocumentCreated("links/{linkId}", async (event)
       return;
     }
 
-    // 3. Call Vertex AI Gemini 1.5 Flash
+    // 3. Call Vertex AI Gemini 2.5 Flash
     const prompt = `You are a strict automated content moderator.
 Review the following text extracted from a website. 
 Does it explicitly promote extreme violence, illegal acts, severe hate speech, SCAM?
