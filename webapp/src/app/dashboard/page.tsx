@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy, doc, deleteDoc, onSnapshot } from "firebase/firestore";
+import { collection, query, where, orderBy, doc, deleteDoc, onSnapshot } from "firebase/firestore";
 import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
@@ -358,7 +358,7 @@ export default function Dashboard() {
                   <a href={`/${link.id}`} target="_blank" rel="noreferrer" className="text-indigo-400 font-semibold text-lg hover:underline block truncate">
                     /{link.id}
                   </a>
-                  <p className="text-slate-400 text-sm truncate mt-1">{link.originalUrl}</p>
+                  <p className="text-slate-400 text-sm truncate mt-1 max-w-md">{link.originalUrl}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="flex items-center gap-2 bg-slate-950 py-2 px-4 rounded-xl border border-slate-800">
