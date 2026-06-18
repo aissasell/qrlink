@@ -1,5 +1,6 @@
 {
   "name": "firebasefunc",
+  "version": "1.0",
   "description": "Firebase Functions for QRLink",
   "dependencies": {
     "@google/genai": "^2.8.0",
