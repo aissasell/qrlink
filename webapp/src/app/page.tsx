@@ -1,10 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
-import { Link2, QrCode, Copy, Check, ArrowRight } from "lucide-react";
+import { Link2, QrCode, Copy, Check, ArrowRight, Zap, Shield, BarChart3 } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import Link from "next/link";
+import Image from "next/image";
+import logo from "@/app/logo.png";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -14,13 +30,22 @@ export default function Home() {
     e.preventDefault();
     if (!url) return;
 
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
+      const token = await user.getIdToken();
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://us-central1-qrlink-b845b.cloudfunctions.net";
       const response = await fetch(`${baseUrl}/shorten`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ url })
       });
       
@@ -46,27 +71,38 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 selection:bg-indigo-500/30 font-sans relative overflow-hidden">
+    <div className="flex-1 text-slate-100 flex flex-col selection:bg-indigo-500/30 font-sans relative overflow-x-hidden">
       
       {/* Background gradients */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
 
-      <main className="w-full max-w-xl z-10">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl mb-4 border border-indigo-500/20 backdrop-blur-xl">
-            <QrCode className="w-8 h-8 text-indigo-400" />
+      <main className="w-full max-w-6xl mx-auto px-6 py-20 flex flex-col items-center z-10">
+        
+        {/* Hero Section */}
+        <div className="text-center mb-16 max-w-3xl">
+          <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl mb-6 border border-indigo-500/20 backdrop-blur-xl">
+            <Image src={logo} alt="Logo" className="w-12 h-12 rounded" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent mb-4">
-            Shorten & Share
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent mb-6">
+            The Ultimate Link <br className="hidden md:block"/> Management Tool
           </h1>
-          <p className="text-slate-400 text-lg max-w-md mx-auto">
-            Create compact links and beautiful QR codes instantly.
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            Create compact, brandable links and beautiful QR codes instantly. Track every click, manage your links in one place, and elevate your marketing.
           </p>
+          {!user && (
+            <div className="flex items-center justify-center gap-4">
+              <Link href="/register" className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-bold text-lg transition-all shadow-[0_0_40px_rgba(79,70,229,0.3)] hover:shadow-[0_0_60px_rgba(79,70,229,0.5)]">
+                Get Started for Free
+              </Link>
+            </div>
+          )}
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-2xl border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
-          <form onSubmit={handleShorten} className="flex flex-col gap-4">
+        {/* Shortener Tool */}
+        <div className="w-full max-w-2xl bg-slate-900/60 backdrop-blur-3xl border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-[26px] blur opacity-20 pointer-events-none" />
+          <form onSubmit={handleShorten} className="relative flex flex-col gap-4">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <Link2 className="h-5 w-5 text-slate-500" />
@@ -128,11 +164,39 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        {/* Features Section */}
+        <div className="mt-32 grid md:grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="bg-slate-900/40 border border-slate-800/50 p-8 rounded-3xl backdrop-blur-sm">
+            <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 border border-indigo-500/20">
+              <Zap className="w-6 h-6 text-indigo-400" />
+            </div>
+            <h3 className="text-xl font-bold mb-3 text-white">Lightning Fast</h3>
+            <p className="text-slate-400 leading-relaxed">
+              Generate links and QR codes instantly. Built on a globally distributed, high-performance edge network.
+            </p>
+          </div>
+          <div className="bg-slate-900/40 border border-slate-800/50 p-8 rounded-3xl backdrop-blur-sm">
+            <div className="w-12 h-12 bg-fuchsia-500/10 rounded-2xl flex items-center justify-center mb-6 border border-fuchsia-500/20">
+              <Shield className="w-6 h-6 text-fuchsia-400" />
+            </div>
+            <h3 className="text-xl font-bold mb-3 text-white">Secure & Reliable</h3>
+            <p className="text-slate-400 leading-relaxed">
+              Your data is protected with enterprise-grade security, ensuring 99.99% uptime for your critical links.
+            </p>
+          </div>
+          <div className="bg-slate-900/40 border border-slate-800/50 p-8 rounded-3xl backdrop-blur-sm">
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20">
+              <BarChart3 className="w-6 h-6 text-emerald-400" />
+            </div>
+            <h3 className="text-xl font-bold mb-3 text-white">Advanced Analytics</h3>
+            <p className="text-slate-400 leading-relaxed">
+              Track every click with real-time statistics. Understand your audience and optimize your campaigns.
+            </p>
+          </div>
+        </div>
+
       </main>
-      
-      <footer className="absolute bottom-6 text-slate-500 text-sm">
-        Powered by Firebase & Next.js
-      </footer>
     </div>
   );
 }

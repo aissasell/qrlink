@@ -2,6 +2,16 @@
   "functions": {
     "source": "firebasefunc"
   },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "googleSignIn": true,
+      "emailPassword": true
+    }
+  },
   "emulators": {
     "functions": {
       "port": 5001
@@ -9,9 +19,15 @@
     "firestore": {
       "port": 8080
     },
+    "auth": {
+      "port": 9099
+    },
     "ui": {
       "enabled": true
     },
     "singleProjectMode": true
+  },
+  "extensions": {
+    "firestore-send-email": "firebase/firestore-send-email@0.2.9"
   }
 }
