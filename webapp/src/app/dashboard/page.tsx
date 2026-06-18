@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, query, where, orderBy, doc, deleteDoc, onSnapshot } from "firebase/firestore";
-import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link2, Loader2, MousePointerClick, ArrowRight, Check, Copy, Trash2, QrCode, BarChart3, TrendingUp, Search, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import QRCode from "react-qr-code";
 import QRCodeLib from "qrcode";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ export default function Dashboard() {
   
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
+  const [shortId, setShortId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export default function Dashboard() {
 
     setIsCreating(true);
     setShortUrl("");
+    setShortId("")
     
     try {
       const token = await user.getIdToken();
@@ -96,6 +98,7 @@ export default function Dashboard() {
       if (!response.ok) throw new Error(data.error || "Failed to shorten");
       
       const host = window.location.origin;
+      setShortId(data.id);
       setShortUrl(`${host}/${data.id}`);
       setUrl("");
     } catch (error) {
@@ -227,13 +230,24 @@ export default function Dashboard() {
               </h2>
               
               <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="p-4 bg-white rounded-2xl shadow-xl shrink-0">
-                  <QRCode
-                    value={shortUrl}
-                    size={120}
-                    style={{ height: "auto", maxWidth: "100%", width: "120px" }}
-                    viewBox={`0 0 256 256`}
-                  />
+                <div className="flex flex-col items center">
+                  <div className="p-4 bg-white rounded-2xl shadow-xl shrink-0">
+                    <QRCode
+                      value={shortUrl}
+                      size={120}
+                      style={{ height: "auto", maxWidth: "100%", width: "120px" }}
+                      viewBox={`0 0 256 256`}
+                    />
+                  </div>
+                  {shortId && (
+                    <button 
+                      onClick={() => handleDownloadQR(shortId)}
+                      className="w-full h-8 my-2 px-3 bg-slate-800 hover:bg-slate-700 hover:cursor-pointer text-slate-300 rounded-lg flex items-center justify-center transition-colors"
+                      title="Download QR Code"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="w-full relative group">
