@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { getFriendlyAuthError } from "@/lib/firebase-errors";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock } from "lucide-react";
@@ -36,7 +37,7 @@ export default function Login() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to log in.");
+      setError(getFriendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -51,7 +52,7 @@ export default function Login() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to log in with Google.");
+      setError(getFriendlyAuthError(err));
     } finally {
       setLoading(false);
     }

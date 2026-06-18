@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { getFriendlyAuthError } from "@/lib/firebase-errors";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock, User as UserIcon } from "lucide-react";
@@ -49,7 +50,7 @@ export default function Register() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to register.");
+      setError(getFriendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ export default function Register() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to register with Google.");
+      setError(getFriendlyAuthError(err));
     } finally {
       setLoading(false);
     }
