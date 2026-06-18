@@ -131,7 +131,6 @@ exports.redirect = onRequest({ cors: true }, (req, res) => {
 });
 
 exports.moderateLinkOnCreate = onDocumentCreated("links/{linkId}", async (event) => {
-  return; // Disabled for now as per user request
   const snapshot = event.data;
   if (!snapshot) return;
 

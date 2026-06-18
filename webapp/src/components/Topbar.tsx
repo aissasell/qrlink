@@ -27,7 +27,7 @@ export default function Topbar() {
     <header className="w-full mx-auto border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl z-50 fixed top-0">
       <div className="w-3/4 mx-auto px-6 py-4 flex items-center justify-between ">
         <Link href="/" className="flex items-center gap-2 group">
-          <Image src={logo} alt="Logo" className="w-10 h-10 rounded-xl" />
+          <Image src={logo} alt="Logo" className="w-8 h-8 rounded" />
           <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             QRLink
           </span>
