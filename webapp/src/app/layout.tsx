@@ -18,8 +18,53 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QRLink | Make your links shorter and share them easily",
+  title: {
+    default: "QRLink | Make your links shorter and share them easily",
+    template: "%s | QRLink",
+  },
   description: "QRLink is a free tool that allows you to create and share QR codes for any URL.",
+  keywords: ["URL shortener", "QR code generator", "link management", "custom links", "QR codes", "free shortener"],
+  authors: [{ name: "QRLink Team" }],
+  creator: "QRLink",
+  publisher: "QRLink",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "QRLink | Make your links shorter and share them easily",
+    description: "QRLink is a free tool that allows you to create and share QR codes for any URL.",
+    url: "https://qrlk.pro",
+    siteName: "QRLink",
+    images: [
+      {
+        url: "/logo.png",
+        width: 800,
+        height: 600,
+        alt: "QRLink Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "QRLink | Make your links shorter and share them easily",
+    description: "QRLink is a free tool that allows you to create and share QR codes for any URL.",
+    images: ["/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
