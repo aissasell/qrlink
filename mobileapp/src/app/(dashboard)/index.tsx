@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../../../lib/firebase';
 import { useShareIntent } from 'expo-share-intent';
 
@@ -53,15 +53,23 @@ export default function DashboardScreen() {
 
     setIsCreating(true);
     try {
-      const shortId = Math.random().toString(36).substring(2, 8); // Simple random ID
+      const user = auth.currentUser;
+      if (!user) throw new Error("You must be logged in to create a link.");
+
+      const token = await user.getIdToken();
+      const baseUrl = process.env.EXPO_PUBLIC_API_URL || "https://us-central1-qrlink-b845b.cloudfunctions.net";
       
-      await addDoc(collection(db, 'links'), {
-        userId: auth.currentUser?.uid,
-        url: finalUrl,
-        shortId,
-        createdAt: serverTimestamp(),
-        clicks: 0
+      const response = await fetch(`${baseUrl}/shorten`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ url: finalUrl })
       });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to shorten");
       
       setNewUrl('');
       if (params.sharedUrl) {
